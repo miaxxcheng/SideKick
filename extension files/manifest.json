@@ -1,0 +1,11 @@
+{
+    "name": "Sidekick",
+    "version": "1.0.0",
+    "description": "A built-in writing companion.",
+    "manifest_version": 3,
+    "author": "Mia Cheng, Arianna Montas, Aditi Ram, Lucas Saidenberg",
+    "action":{
+        "default_popup": "index.html",
+        "default_title": "Sidekick"
+    }
+}
