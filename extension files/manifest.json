@@ -6,18 +6,49 @@
     "author": "Mia Cheng, Arianna Montas, Aditi Ram, Lucas Saidenberg",
     "action":{
         "default_popup": "index.html",
-        "default_title": "Sidekick"
+        "default_title": "Sidekick",
+        "default_icon": "icons/sidekick.png"
     },
     "background": {
       "service_worker": "background.js"
     },
-    "permissions": ["scripting", "activeTab"],
-    "host permissions": ["https://docs.google.com/*"],
-    "content_scripts": [
-        {
-            "matches": ["https://docs.google.com/*"],
-            "js": ["contentScript.js"]
-        }
+    "default_pop": "popup.html",
+    
+    "permissions": [
+      "activeTab",
+      "storage",
+      "scripting"
     ],
-    "default_pop": "popup.html"
+    "host_permissions": [
+      "*://*.google.com/docs/*",
+      "*://*.microsoft.com/word/*"
+    ],
+    "content_scripts": [
+      {
+        "matches": [
+          "*://*.google.com/docs/*",
+          "*://*.microsoft.com/word/*",
+          "*://*.medium.com/*",
+          "*://*.wattpad.com/*"
+        ],
+        "js": ["contentScript.js"],
+        "css": ["styles.css"]
+      }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["icons/*", "scripts/*"],
+        "matches": ["<all_urls>"]
+      }
+    ],
+    "options_page": "options.html",
+    "commands": {
+      "toggle-suggestions": {
+        "suggested_key": {
+          "default": "Ctrl+Shift+S",
+          "mac": "Command+Shift+S"
+        },
+        "description": "Toggle AI Suggestions"
+      }
+    }
 }
