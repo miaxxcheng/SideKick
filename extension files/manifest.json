@@ -27,12 +27,9 @@
       {
         "matches": [
           "*://*.google.com/docs/*",
-          "*://*.microsoft.com/word/*",
-          "*://*.medium.com/*",
-          "*://*.wattpad.com/*"
+          "*://*.microsoft.com/word/*"
         ],
-        "js": ["contentScript.js"],
-        "css": ["styles.css"]
+        "js": ["contentScript.js"]
       }
     ],
     "web_accessible_resources": [
@@ -41,7 +38,6 @@
         "matches": ["<all_urls>"]
       }
     ],
-    "options_page": "options.html",
     "commands": {
       "toggle-suggestions": {
         "suggested_key": {
