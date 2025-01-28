@@ -7,5 +7,17 @@
     "action":{
         "default_popup": "index.html",
         "default_title": "Sidekick"
-    }
+    },
+    "background": {
+      "service_worker": "background.js"
+    },
+    "permissions": ["scripting", "activeTab"],
+    "host permissions": ["https://docs.google.com/*"],
+    "content_scripts": [
+        {
+            "matches": ["https://docs.google.com/*"],
+            "js": ["contentScript.js"]
+        }
+    ],
+    "default_pop": "popup.html"
 }
