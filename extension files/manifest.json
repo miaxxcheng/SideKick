@@ -5,6 +5,7 @@
     "manifest_version": 3,
     "author": "Mia Cheng, Arianna Montas, Aditi Ram, Lucas Saidenberg",
     "action": {
+      "default_popup": "popup.html",
       "default_icon": "icon/sidekick.png",
       "default_title": "Sidekick"
     },
@@ -19,7 +20,8 @@
     ],
     "host_permissions": [
       "*://*.google.com/docs/*",
-      "*://*.microsoft.com/word/*"
+      "*://*.microsoft.com/word/*",
+      "https://api.openai.com/*"
     ],
     "content_scripts": [
       {

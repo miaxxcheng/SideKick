@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL; 
+require('dotenv').config();
+const API_KEY = process.env.OPENAI_API_KEY;
 
 chrome.action.onClicked.addListener((tab) => {
     // Inject content script to show the Sidekick icon and chatbox

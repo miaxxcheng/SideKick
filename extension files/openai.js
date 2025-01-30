@@ -1,4 +1,5 @@
-const API_KEY = 'YOUR_OPENAI_API_KEY'; // Replace with actual OpenAI API key
+require('dotenv').config();
+const API_KEY = process.env.OPENAI_API_KEY;
 const API_URL = 'https://api.openai.com/v1/chat/completions';
 
 export async function sendMessageToOpenAI(userMessage) {
