@@ -1,3 +1,5 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL; 
+
 chrome.action.onClicked.addListener((tab) => {
     // Inject content script to show the Sidekick icon and chatbox
     chrome.scripting.executeScript({
@@ -135,7 +137,7 @@ function showSidekickIconAndChatbox() {
     sendButton.addEventListener("click", () => {
         const message = inputField.value.trim();
         if (message) {
-            // Add the message to the chatbox
+            // Add the user's message to the chatbox
             const userMessage = document.createElement("div");
             userMessage.style.marginBottom = "10px";
             userMessage.style.padding = "8px";
@@ -146,6 +148,19 @@ function showSidekickIconAndChatbox() {
 
             // Clear the input field
             inputField.value = "";
+
+            // Send the message to the OpenAI API
+            sendMessageToOpenAI(message).then(response => {
+                const botMessage = document.createElement("div");
+                botMessage.style.marginBottom = "10px";
+                botMessage.style.padding = "8px";
+                botMessage.style.backgroundColor = "#e1e1e1";
+                botMessage.style.borderRadius = "5px";
+                botMessage.innerText = response;
+                chatboxContent.appendChild(botMessage);
+            }).catch(err => {
+                console.error("Error fetching OpenAI response:", err);
+            });
         }
     });
 

@@ -1,3 +1,6 @@
+import { sendMessageToOpenAI } from './scripts/openai.js';
+
+
 (function () {
     // Check if the Sidekick icon already exists to prevent duplication
     if (document.getElementById("sidekick-icon")) return;
@@ -93,3 +96,30 @@
         document.removeEventListener("mouseup", onMouseUp);
     }
 })();
+
+sendButton.addEventListener("click", () => {
+    const message = inputField.value.trim();
+    if (message) {
+        const userMessage = document.createElement("div");
+        userMessage.style.marginBottom = "10px";
+        userMessage.style.padding = "8px";
+        userMessage.style.backgroundColor = "#f1f1f1";
+        userMessage.style.borderRadius = "5px";
+        userMessage.innerText = message;
+        chatboxContent.appendChild(userMessage);
+
+        inputField.value = "";
+
+        sendMessageToOpenAI(message).then(response => {
+            const botMessage = document.createElement("div");
+            botMessage.style.marginBottom = "10px";
+            botMessage.style.padding = "8px";
+            botMessage.style.backgroundColor = "#e1e1e1";
+            botMessage.style.borderRadius = "5px";
+            botMessage.innerText = response;
+            chatboxContent.appendChild(botMessage);
+        }).catch(err => {
+            console.error("Error fetching OpenAI response:", err);
+        });
+    }
+});
