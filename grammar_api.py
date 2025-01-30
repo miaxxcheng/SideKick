@@ -31,7 +31,7 @@ def mark_corrections(sentence, matches):
             incorrect_word = sentence[match["offset"]:match["offset"] + length]
             
             # Mark the incorrect word with `~~` and add the replacement in parentheses
-            marked = f"(~{incorrect_word}~) {replacement}"
+            marked = f"~{incorrect_word}~ ({replacement})"
             marked_sentence = (
                 marked_sentence[:offset] + marked + marked_sentence[offset + length:]
             )

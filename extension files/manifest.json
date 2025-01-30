@@ -4,8 +4,45 @@
     "description": "A built-in writing companion.",
     "manifest_version": 3,
     "author": "Mia Cheng, Arianna Montas, Aditi Ram, Lucas Saidenberg",
-    "action":{
-        "default_popup": "index.html",
-        "default_title": "Sidekick"
+    "action": {
+      "default_icon": "icon/sidekick.png",
+      "default_title": "Sidekick"
+    },
+    "background": {
+      "service_worker": "background.js"
+    },
+    "permissions": [
+      "activeTab",
+      "storage",
+      "scripting",
+      "identity"
+    ],
+    "host_permissions": [
+      "*://*.google.com/docs/*",
+      "*://*.microsoft.com/word/*"
+    ],
+    "content_scripts": [
+      {
+        "matches": [
+          "*://*.google.com/docs/*",
+          "*://*.microsoft.com/word/*"
+        ],
+        "js": ["contentScript.js"]
+      }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["icons/*", "scripts/*"],
+        "matches": ["<all_urls>"]
+      }
+    ],
+    "commands": {
+      "toggle-suggestions": {
+        "suggested_key": {
+          "default": "Ctrl+Shift+S",
+          "mac": "Command+Shift+S"
+        },
+        "description": "Toggle AI Suggestions"
+      }
     }
-}
+  }  
