@@ -4,6 +4,7 @@
     "description": "A built-in writing companion.",
     "manifest_version": 3,
     "author": "Mia Cheng, Arianna Montas, Aditi Ram, Lucas Saidenberg",
+    "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3GS7zdjMrxRPPwTDoCqc5d7V+Pln1IHRwsQ0mDP1FCzyDWPhxXXQZLm2EEMyoUeqVz+0VNrrTP7J9Sjk7JDcEz74n3OwFnsUoknWAZQ/78g6DJT3Dg8mOhb3vTF51qrYGOrZaqJhH+x8G+HsSoQisJFsh9XRW/kppNWxXBEd6G+ALUbYAjM+mwMGvupFPU2DnfiAQgJ1riVH0liyPwQjUqQ4zS9v3vtvc5FMM7tkMPjwtqpWvprFbveGqznS6be7fWA6e8h72n/Mb6tqA4VRXWEJYEsyMpGuxuDGEtfo5byljRptsRoFkk/rvnjbVZBHT4MiiuEoqh/c9BtskxSe+QIDAQAB",
     "action": {
       "default_icon": "icon/sidekick.png",
       "default_title": "Sidekick"
@@ -19,13 +20,15 @@
     ],
     "host_permissions": [
       "*://*.google.com/docs/*",
-      "*://*.microsoft.com/word/*"
+      "*://*.microsoft.com/word/*",
+      "https://docs.googleapis.com/"
     ],
     "content_scripts": [
       {
         "matches": [
           "*://*.google.com/docs/*",
-          "*://*.microsoft.com/word/*"
+          "*://*.microsoft.com/word/*",
+          "https://docs.google.com/document/d/*"
         ],
         "js": ["contentScript.js"]
       }
@@ -44,5 +47,11 @@
         },
         "description": "Toggle AI Suggestions"
       }
+    },
+    "oauth2": {
+      "client_id": "292573385770-pc045jsni7e6bph071pn4j3dbq37tbcj.apps.googleusercontent.com",
+      "scopes": [
+        "https://www.googleapis.com/auth/documents"
+      ]
     }
-  }  
+}  

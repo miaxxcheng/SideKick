@@ -156,3 +156,20 @@ function showSidekickIconAndChatbox() {
         }
     });
 }
+
+
+//////////////////////////////////////////////// GOOGLE DOCS API /////////////////////////////////////////////////////
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "getAuthToken") {
+      chrome.identity.getAuthToken({ interactive: true }, (token) => {
+        if (chrome.runtime.lastError) {
+          console.error("Error getting auth token:", chrome.runtime.lastError);
+          sendResponse({ error: chrome.runtime.lastError.message });
+        } else {
+          sendResponse({ token: token });
+        }
+      });
+      // Return true to indicate that we wish to send a response asynchronously.
+      return true;
+    }
+  });

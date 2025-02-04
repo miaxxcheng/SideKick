@@ -1,3 +1,5 @@
+console.log("Content script loaded on:", window.location.href);
+
 (function () {
     // Check if the Sidekick icon already exists to prevent duplication
     if (document.getElementById("sidekick-icon")) return;
@@ -93,3 +95,109 @@
         document.removeEventListener("mouseup", onMouseUp);
     }
 })();
+
+//////////////////////////////////////////////// GOOGLE DOCS API /////////////////////////////////////////////////////
+
+(function() {
+    // Make sure we're running on a Google Doc page.
+    if (window.location.href.indexOf("docs.google.com/document/d/") === -1) {
+      return;
+    }
+  
+    // Ask the background service worker for an OAuth token.
+    chrome.runtime.sendMessage({ action: "getAuthToken" }, (response) => {
+      if (response.error) {
+        console.error("Error getting auth token:", response.error);
+        return;
+      }
+      const token = response.token;
+  
+      // Extract the document ID from the URL.
+      const documentId = extractDocumentId(window.location.href);
+      if (!documentId) {
+        console.error("Could not extract document ID from URL.");
+        return;
+      }
+  
+      // Read the document.
+      readGoogleDoc(documentId, token);
+  
+      // Optionally, if you have a button or UI element to trigger an update,
+      // hook it up to the update function. For example:
+    //   const updateButton = document.getElementById("updateButton");
+    //   if (updateButton) {
+    //     updateButton.addEventListener("click", () => {
+    //       updateGoogleDoc(documentId, token);
+    //     });
+    //   }
+    });
+  
+    /**
+     * Extracts the Google Doc ID from the URL.
+     * Example URL: https://docs.google.com/document/d/XYZ123abcDEF456/edit
+     */
+    function extractDocumentId(url) {
+      const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      return match ? match[1] : null;
+    }
+  
+    /**
+     * Reads the Google Doc using the Docs API.
+     */
+    function readGoogleDoc(documentId, token) {
+      const url = `https://docs.googleapis.com/v1/documents/${documentId}`;
+      fetch(url, {
+        headers: new Headers({
+          'Authorization': 'Bearer ' + token
+        })
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch document. Status: " + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("Fetched document data:", data);
+          // You can now work with the document data (e.g., display title, content, etc.)
+        })
+        .catch(error => console.error("Error reading document:", error));
+    }
+  
+    /**
+     * Updates the Google Doc using the batchUpdate endpoint.
+     */
+    function updateGoogleDoc(documentId, token) {
+      const url = `https://docs.googleapis.com/v1/documents/${documentId}:batchUpdate`;
+      const body = {
+        requests: [
+          {
+            insertText: {
+              location: { index: 1 },
+              text: "Hello from your Chrome Extension using Manifest V3!\n"
+            }
+          }
+        ]
+      };
+  
+      fetch(url, {
+        method: "POST",
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Failed to update document. Status: " + response.status);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("Document updated successfully:", data);
+        })
+        .catch(error => console.error("Error updating document:", error));
+    }
+  })();
+  
