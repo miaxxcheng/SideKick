@@ -6,6 +6,69 @@ chrome.action.onClicked.addListener((tab) => {
     });
 });
 
+
+chrome.action.onClicked.addListener((tab) => {
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      function: showSidekickIconAndChatbox
+    });
+  });
+  
+    // Retrieve the OpenAI API key from Chrome storage
+    async function getOpenAIKey() {
+        return new Promise((resolve) => {
+        chrome.storage.sync.get("openaiApiKey", (data) => {
+            resolve(data.openaiApiKey);
+        });
+        });
+    }
+
+  // Function to call OpenAI API
+  async function callOpenAI(prompt) {
+
+    const openaiApiKey = await getOpenAIKey();
+        if (!openaiApiKey) {
+            console.error("OpenAI API key not found. Please set it up in the extension settings.");
+            return;
+        }
+        
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 150
+      })
+    });
+    const data = await response.json();
+    return data.choices[0].message.content;
+  }
+  
+  // Listen for messages from content script
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "callOpenAI") {
+      callOpenAI(request.prompt).then((response) => {
+        sendResponse({ response: response });
+      });
+      return true; // Indicates async response
+    } else if (request.action === "getAuthToken") {
+      chrome.identity.getAuthToken({ interactive: true }, (token) => {
+        if (chrome.runtime.lastError) {
+          console.error("Error getting auth token:", chrome.runtime.lastError);
+          sendResponse({ error: chrome.runtime.lastError.message });
+        } else {
+          sendResponse({ token: token });
+        }
+      });
+      return true;
+    }
+  });
+
+
 function showSidekickIconAndChatbox() {
     // Prevent duplication of Sidekick icon and chatbox
     if (document.getElementById("sidekick-icon")) return;
