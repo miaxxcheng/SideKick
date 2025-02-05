@@ -36,7 +36,7 @@ chrome.action.onClicked.addListener((tab) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`
+        "Authorization": `Bearer ${openaiApiKey}`
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",

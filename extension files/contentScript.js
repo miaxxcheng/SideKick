@@ -138,13 +138,24 @@ console.log("Content script loaded on:", window.location.href);
         action: "callOpenAI",
         prompt: message
       });
-      const aiMessage = document.createElement("div");
-      aiMessage.style.marginBottom = "10px";
-      aiMessage.style.padding = "8px";
-      aiMessage.style.backgroundColor = "#e3f2fd";
-      aiMessage.style.borderRadius = "5px";
-      aiMessage.innerText = response.response;
-      chatboxContent.appendChild(aiMessage);
+      
+      if (response.error) {
+        const errorMessage = document.createElement("div");
+        errorMessage.style.marginBottom = "10px";
+        errorMessage.style.padding = "8px";
+        errorMessage.style.backgroundColor = "#ffebee";
+        errorMessage.style.borderRadius = "5px";
+        errorMessage.innerText = "Error: " + response.error;
+        chatboxContent.appendChild(errorMessage);
+      } else {
+        const aiMessage = document.createElement("div");
+        aiMessage.style.marginBottom = "10px";
+        aiMessage.style.padding = "8px";
+        aiMessage.style.backgroundColor = "#e3f2fd";
+        aiMessage.style.borderRadius = "5px";
+        aiMessage.innerText = response.response;
+        chatboxContent.appendChild(aiMessage);
+      }
     }
   });
 
