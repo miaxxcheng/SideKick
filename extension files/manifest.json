@@ -7,7 +7,8 @@
     "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3GS7zdjMrxRPPwTDoCqc5d7V+Pln1IHRwsQ0mDP1FCzyDWPhxXXQZLm2EEMyoUeqVz+0VNrrTP7J9Sjk7JDcEz74n3OwFnsUoknWAZQ/78g6DJT3Dg8mOhb3vTF51qrYGOrZaqJhH+x8G+HsSoQisJFsh9XRW/kppNWxXBEd6G+ALUbYAjM+mwMGvupFPU2DnfiAQgJ1riVH0liyPwQjUqQ4zS9v3vtvc5FMM7tkMPjwtqpWvprFbveGqznS6be7fWA6e8h72n/Mb6tqA4VRXWEJYEsyMpGuxuDGEtfo5byljRptsRoFkk/rvnjbVZBHT4MiiuEoqh/c9BtskxSe+QIDAQAB",
     "action": {
       "default_icon": "icon/sidekick.png",
-      "default_title": "Sidekick"
+      "default_title": "Sidekick",
+      "default_popup": "setup.html" 
     },
     "background": {
       "service_worker": "background.js"
