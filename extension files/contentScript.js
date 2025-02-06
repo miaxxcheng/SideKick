@@ -1,4 +1,5 @@
 console.log("Content script loaded on:", window.location.href);
+let docinfo = "";
 
 (function () {
   // Check if the Sidekick icon already exists to prevent duplication
@@ -133,29 +134,52 @@ console.log("Content script loaded on:", window.location.href);
 
       inputField.value = "";
 
-      // Call OpenAI API
-      const response = await chrome.runtime.sendMessage({
-        action: "callOpenAI",
-        prompt: message
-      });
-      
-      if (response.error) {
-        const errorMessage = document.createElement("div");
-        errorMessage.style.marginBottom = "10px";
-        errorMessage.style.padding = "8px";
-        errorMessage.style.backgroundColor = "#ffebee";
-        errorMessage.style.borderRadius = "5px";
-        errorMessage.innerText = "Error: " + response.error;
-        chatboxContent.appendChild(errorMessage);
-      } else {
-        const aiMessage = document.createElement("div");
-        aiMessage.style.marginBottom = "10px";
-        aiMessage.style.padding = "8px";
-        aiMessage.style.backgroundColor = "#e3f2fd";
-        aiMessage.style.borderRadius = "5px";
-        aiMessage.innerText = response.response;
-        chatboxContent.appendChild(aiMessage);
+      // Extract the document ID from the URL.
+      const documentId = extractDocumentId(window.location.href);
+      if (!documentId) {
+        console.error("Could not extract document ID from URL.");
+        return;
       }
+
+      // Ask the background service worker for an OAuth token.
+      chrome.runtime.sendMessage({ action: "getAuthToken" }, async (response) => {
+        if (response.error) {
+          console.error("Error getting auth token:", response.error);
+          return;
+        }
+        const token = response.token;
+
+        // Read the document.
+        const docinfo = await readGoogleDoc(documentId, token);
+        console.log("docinfo", docinfo);
+
+        const prompt = `With this background information: ${docinfo}, answer the following question: ${message}. Be concise`;
+        console.log(prompt);
+
+        // Call OpenAI API
+        const openAIResponse = await chrome.runtime.sendMessage({
+          action: "callOpenAI",
+          prompt: prompt
+        });
+
+        if (openAIResponse.error) {
+          const errorMessage = document.createElement("div");
+          errorMessage.style.marginBottom = "10px";
+          errorMessage.style.padding = "8px";
+          errorMessage.style.backgroundColor = "#ffebee";
+          errorMessage.style.borderRadius = "5px";
+          errorMessage.innerText = "Error: " + openAIResponse.error;
+          chatboxContent.appendChild(errorMessage);
+        } else {
+          const aiMessage = document.createElement("div");
+          aiMessage.style.marginBottom = "10px";
+          aiMessage.style.padding = "8px";
+          aiMessage.style.backgroundColor = "#e3f2fd";
+          aiMessage.style.borderRadius = "5px";
+          aiMessage.innerText = openAIResponse.response;
+          chatboxContent.appendChild(aiMessage);
+        }
+      });
     }
   });
 
@@ -165,6 +189,61 @@ console.log("Content script loaded on:", window.location.href);
       sendButton.click();
     }
   });
+
+  /**
+   * Extracts the Google Doc ID from the URL.
+   * Example URL: https://docs.google.com/document/d/XYZ123abcDEF456/edit
+   */
+  function extractDocumentId(url) {
+    const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    return match ? match[1] : null;
+  }
+
+  /**
+   * Reads the Google Doc using the Docs API.
+   */
+  async function readGoogleDoc(documentId, token) {
+    const url = `https://docs.googleapis.com/v1/documents/${documentId}`;
+    try {
+      const response = await fetch(url, {
+        headers: new Headers({
+          'Authorization': 'Bearer ' + token
+        })
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch document. Status: " + response.status);
+      }
+      const data = await response.json();
+      console.log("Fetched document data:", data);
+      const parsed = extractText(data);
+      docinfo = JSON.stringify(parsed, null, 2);
+      console.log(docinfo);
+      return docinfo;
+    } catch (error) {
+      console.error("Error reading document:", error);
+    }
+  }
+
+  /**
+   * Extracts text from the Google Doc content.
+   */
+  function extractText(doc) {
+    let extractedText = [];
+
+    if (doc.body && doc.body.content) {
+      doc.body.content.forEach(element => {
+        if (element.paragraph && element.paragraph.elements) {
+          element.paragraph.elements.forEach(el => {
+            if (el.textRun && el.textRun.content) {
+              extractedText.push(el.textRun.content.trim());
+            }
+          });
+        }
+      });
+    }
+
+    return { text: extractedText.join("\n") }; // Convert to JSON format
+  }
 })();
 
 //////////////////////////////////////////////// GOOGLE DOCS API /////////////////////////////////////////////////////
@@ -215,6 +294,7 @@ console.log("Content script loaded on:", window.location.href);
     /**
      * Reads the Google Doc using the Docs API.
      */
+    
     function readGoogleDoc(documentId, token) {
       const url = `https://docs.googleapis.com/v1/documents/${documentId}`;
       fetch(url, {
@@ -231,7 +311,12 @@ console.log("Content script loaded on:", window.location.href);
         .then(data => {
           console.log("Fetched document data:", data);
           parsed = extractText(data)
-          console.log(JSON.stringify(extractText(data), null, 2));
+          docinfo = JSON.stringify(parsed, null, 2);
+          console.log(docinfo)
+
+          return docinfo
+          
+
           // You can now work with the document data (e.g., display title, content, etc.)
         })
         .catch(error => console.error("Error reading document:", error));
