@@ -230,6 +230,8 @@ console.log("Content script loaded on:", window.location.href);
         })
         .then(data => {
           console.log("Fetched document data:", data);
+          parsed = extractText(data)
+          console.log(JSON.stringify(extractText(data), null, 2));
           // You can now work with the document data (e.g., display title, content, etc.)
         })
         .catch(error => console.error("Error reading document:", error));
@@ -271,4 +273,22 @@ console.log("Content script loaded on:", window.location.href);
         .catch(error => console.error("Error updating document:", error));
     }
   })();
+
+function extractText(doc) {
+  let extractedText = [];
+
+  if (doc.body && doc.body.content) {
+      doc.body.content.forEach(element => {
+          if (element.paragraph && element.paragraph.elements) {
+              element.paragraph.elements.forEach(el => {
+                  if (el.textRun && el.textRun.content) {
+                      extractedText.push(el.textRun.content.trim());
+                  }
+              });
+          }
+      });
+  }
+
+  return { text: extractedText.join("\n") }; // Convert to JSON format
+}
   
