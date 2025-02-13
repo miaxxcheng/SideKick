@@ -78,6 +78,18 @@ let docinfo = "";
   sendButton.style.borderRadius = "5px";
   sendButton.innerText = "Send";
 
+    // Clear Button
+    const clearButton = document.createElement("button");
+    clearButton.innerText = "Clear History";
+    clearButton.style.backgroundColor = "transparent";
+    clearButton.style.border = "none";
+    clearButton.style.color = "white";
+    clearButton.style.cursor = "pointer";
+    clearButton.style.fontSize = "12px";
+    clearButton.style.padding = "4px 8px";
+    clearButton.style.borderRadius = "4px";
+    clearButton.style.marginLeft = "10px"; 
+
   inputContainer.appendChild(inputField);
   inputContainer.appendChild(sendButton);
 
@@ -92,6 +104,13 @@ let docinfo = "";
   sidekickIcon.addEventListener("click", () => {
     chatbox.style.display = chatbox.style.display === "none" ? "block" : "none";
   });
+
+  clearButton.addEventListener("mouseenter", () => {
+    clearButton.style.backgroundColor = "rgba(132, 0, 255, 0.2)";
+});
+clearButton.addEventListener("mouseleave", () => {
+    clearButton.style.backgroundColor = "transparent";
+});
 
   // Make the chatbox draggable
   let isDragging = false;
@@ -153,7 +172,7 @@ let docinfo = "";
         const docinfo = await readGoogleDoc(documentId, token);
         console.log("docinfo", docinfo);
 
-        const prompt = `With this background information: ${docinfo}, answer the following question: ${message}. Be concise`;
+        const prompt = `With this background information: ${docinfo}, answer the following question: ${message}`;
         console.log(prompt);
 
         // Call OpenAI API
@@ -178,10 +197,77 @@ let docinfo = "";
           aiMessage.style.borderRadius = "5px";
           aiMessage.innerText = openAIResponse.response;
           chatboxContent.appendChild(aiMessage);
+
+          saveConversation(documentId, message, openAIResponse.response, docinfo);
+
         }
       });
     }
   });
+
+  function saveConversation(documentId, userMessage, aiResponse, docinfo) {
+    chrome.storage.local.get([documentId], (result) => {
+        const conversations = result[documentId] || [];
+        conversations.push({
+            userMessage,
+            aiResponse,
+            docinfo,
+            timestamp: new Date().toISOString()
+        });
+
+        chrome.storage.local.set({ [documentId]: conversations }, () => {
+            console.log("Conversation saved for document ID:", documentId);
+        });
+    });
+  }
+
+
+  function loadConversations(documentId) {
+    chrome.storage.local.get([documentId], (result) => {
+        const conversations = result[documentId] || [];
+        if (conversations.length > 0) {
+            conversations.forEach(convo => {
+                const userMessage = document.createElement("div");
+                userMessage.style.marginBottom = "10px";
+                userMessage.style.padding = "8px";
+                userMessage.style.backgroundColor = "#f1f1f1";
+                userMessage.style.borderRadius = "5px";
+                userMessage.innerText = convo.userMessage;
+                chatboxContent.appendChild(userMessage);
+
+                const aiMessage = document.createElement("div");
+                aiMessage.style.marginBottom = "10px";
+                aiMessage.style.padding = "8px";
+                aiMessage.style.backgroundColor = "#e3f2fd";
+                aiMessage.style.borderRadius = "5px";
+                aiMessage.innerText = convo.aiResponse;
+                chatboxContent.appendChild(aiMessage);
+            });
+        }
+    });
+  }
+
+  // Call this function when the content script is initialized
+  const documentId = extractDocumentId(window.location.href);
+  if (documentId) {
+      loadConversations(documentId);
+  }
+
+  function clearConversations(documentId) {
+    chrome.storage.local.remove([documentId], () => {
+        console.log("Conversations cleared for document ID:", documentId);
+        chatboxContent.innerHTML = "Hello! How can I help you today?";
+    });
+  }
+
+
+  clearButton.addEventListener("click", () => {
+      const documentId = extractDocumentId(window.location.href);
+      if (documentId) {
+          clearConversations(documentId);
+      }
+  });
+  chatboxHeader.appendChild(clearButton);
 
   // Allow Enter key to send message
   inputField.addEventListener("keypress", (e) => {
