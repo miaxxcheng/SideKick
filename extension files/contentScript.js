@@ -78,17 +78,21 @@ let docinfo = "";
   sendButton.style.borderRadius = "5px";
   sendButton.innerText = "Send";
 
-    // Clear Button
-    const clearButton = document.createElement("button");
-    clearButton.innerText = "Clear History";
-    clearButton.style.backgroundColor = "transparent";
-    clearButton.style.border = "none";
-    clearButton.style.color = "white";
-    clearButton.style.cursor = "pointer";
-    clearButton.style.fontSize = "12px";
-    clearButton.style.padding = "4px 8px";
-    clearButton.style.borderRadius = "4px";
-    clearButton.style.marginLeft = "10px"; 
+  const clearButton = document.createElement("button");
+  clearButton.innerText = "Clear Chat";
+  clearButton.style.backgroundColor = "transparent";
+  clearButton.style.borderWidth = "1px";
+  clearButton.style.borderColor = "white";
+  clearButton.style.color = "white";
+  clearButton.style.cursor = "pointer";
+  clearButton.style.fontSize = "12px";
+  clearButton.style.padding = "4px 8px";
+  clearButton.style.borderRadius = "4px";
+  clearButton.style.position = "absolute"; 
+  clearButton.style.right = "10px"; 
+  clearButton.style.top = "5px";
+
+  chatboxHeader.appendChild(clearButton);
 
   inputContainer.appendChild(inputField);
   inputContainer.appendChild(sendButton);
