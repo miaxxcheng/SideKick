@@ -106,11 +106,11 @@ let docinfo = "";
 
   const settingsPanel = document.createElement("div");
   settingsPanel.id = "settings-panel";
-  settingsPanel.style.position = "fixed";
-  settingsPanel.style.bottom = "80px";
-  settingsPanel.style.right = "20px";
-  settingsPanel.style.width = "300px";
-  settingsPanel.style.height = "200px";
+  settingsPanel.style.position = "absolute";
+  settingsPanel.style.top = "35px";
+  settingsPanel.style.left = "0";
+  settingsPanel.style.width = "calc(100%-20px)";
+  settingsPanel.style.height = "calc(100% - 35px)";
   settingsPanel.style.border = "1px solid #ccc";
   settingsPanel.style.borderRadius = "10px";
   settingsPanel.style.backgroundColor = "white";
@@ -118,6 +118,7 @@ let docinfo = "";
   settingsPanel.style.zIndex = "1000";
   settingsPanel.style.display = "none";
   settingsPanel.style.padding = "10px";
+  // settingsPanel.style.overflowY = "auto"; // Add scroll if content overflows
 
   // Genre input field
   const genreLabel = document.createElement("label");
@@ -144,9 +145,9 @@ let docinfo = "";
   slider.min = "0";
   slider.max = "100";
   slider.value = "50";
-  slider.style.width = "100%";
+  slider.style.width = "90%";
 
-  // Save button
+  // Save button for settings
   const saveButton = document.createElement("button");
   saveButton.innerText = "Save";
   saveButton.style.marginTop = "10px";
@@ -156,6 +157,17 @@ let docinfo = "";
   saveButton.style.border = "none";
   saveButton.style.borderRadius = "5px";
   saveButton.style.cursor = "pointer";
+  //Cancel button for settings
+  const cancelButton = document.createElement("button");
+  cancelButton.innerText = "Cancel";
+  cancelButton.style.marginTop = "10px";
+  cancelButton.style.padding = "8px 16px";
+  cancelButton.style.backgroundColor = "#ccc";
+  cancelButton.style.color = "black";
+  cancelButton.style.border = "none";
+  cancelButton.style.borderRadius = "5px";
+  cancelButton.style.cursor = "pointer";
+  cancelButton.style.marginLeft = "10px";
 
   // Append elements to the settings panel
   settingsPanel.appendChild(genreLabel);
@@ -163,6 +175,7 @@ let docinfo = "";
   settingsPanel.appendChild(sliderLabel);
   settingsPanel.appendChild(slider);
   settingsPanel.appendChild(saveButton);
+  settingsPanel.appendChild(cancelButton);
 
   chatboxHeader.appendChild(settingsButton);
   chatboxHeader.appendChild(clearButton);
@@ -173,10 +186,11 @@ let docinfo = "";
   chatbox.appendChild(chatboxHeader);
   chatbox.appendChild(chatboxContent);
   chatbox.appendChild(inputContainer);
+  chatbox.appendChild(settingsPanel);
 
   document.body.appendChild(sidekickIcon);
   document.body.appendChild(chatbox);
-  document.body.appendChild(settingsPanel);
+ 
 
   
 
@@ -186,7 +200,19 @@ let docinfo = "";
   });
   // Toggle settings visibility
   settingsButton.addEventListener("click", () => {
-    settingsPanel.style.display = settingsPanel.style.display === "none" ? "block" : "none";
+    if (settingsPanel.style.display === "none") {
+      chatboxContent.style.display = "none"; // Hide the chatbox content
+      settingsPanel.style.display = "block"; // Show the settings panel
+
+      // Reset the settings panel position to ensure it is visible
+      settingsPanel.style.left = "0"; // Align to the left edge of the chatbox
+      settingsPanel.style.top = "35px"; // Position below the header
+      settingsPanel.style.width = "calc(100%-20px)"; // Take up the full width of the chatbox
+      settingsPanel.style.height = "calc(100% - 35px)"; // Adjust height to fit the content area
+    } else {
+      chatboxContent.style.display = "block"; // Show the chatbox content
+      settingsPanel.style.display = "none"; // Hide the settings panel
+    }
   });
 
   clearButton.addEventListener("mouseenter", () => {
@@ -195,6 +221,8 @@ let docinfo = "";
   clearButton.addEventListener("mouseleave", () => {
       clearButton.style.backgroundColor = "transparent";
   });
+
+
 
 
   // Make the chatbox draggable
@@ -207,14 +235,24 @@ let docinfo = "";
     offsetY = e.clientY - chatbox.getBoundingClientRect().top;
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
+  
+    // Sync the settings panel position on initial drag
+    const chatboxRect = chatbox.getBoundingClientRect();
+    settingsPanel.style.left = `${chatboxRect.left}px`;
+    settingsPanel.style.top = `${chatboxRect.top + 40}px`; // Adjust for the header height
   });
 
   function onMouseMove(e) {
     if (isDragging) {
+      const chatboxRect = chatbox.getBoundingClientRect();
       chatbox.style.left = `${e.clientX - offsetX}px`;
       chatbox.style.top = `${e.clientY - offsetY}px`;
       chatbox.style.bottom = "auto";
       chatbox.style.right = "auto";
+  
+      // Sync the settings panel position
+      settingsPanel.style.left = `${chatboxRect.left}px`;
+      settingsPanel.style.top = `${chatboxRect.top + 40}px`; 
     }
   }
 
@@ -232,6 +270,11 @@ let docinfo = "";
         console.log("Settings saved");
         settingsPanel.style.display = "none"; // Hide the settings panel after saving
     });
+  });
+
+  cancelButton.addEventListener("click", () => {
+    settingsPanel.style.display = "none";
+    // Optionally, reset any unsaved changes here
   });
 
   chrome.storage.sync.get(["genre", "commentingBehavior"], (data) => {
