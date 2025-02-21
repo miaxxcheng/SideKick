@@ -89,9 +89,82 @@ let docinfo = "";
   clearButton.style.padding = "4px 8px";
   clearButton.style.borderRadius = "4px";
   clearButton.style.position = "absolute"; 
-  clearButton.style.right = "10px"; 
+  clearButton.style.right = "45px";
   clearButton.style.top = "5px";
 
+  const settingsButton = document.createElement("button");
+  settingsButton.innerText = "⚙️"; 
+  settingsButton.style.backgroundColor = "transparent";
+  settingsButton.style.border = "none";
+  settingsButton.style.color = "white";
+  settingsButton.style.cursor = "pointer";
+  settingsButton.style.fontSize = "16px";
+  settingsButton.style.position = "absolute";
+  settingsButton.style.right = "10px"; 
+  settingsButton.style.top = "5px";
+
+
+  const settingsPanel = document.createElement("div");
+  settingsPanel.id = "settings-panel";
+  settingsPanel.style.position = "fixed";
+  settingsPanel.style.bottom = "80px";
+  settingsPanel.style.right = "20px";
+  settingsPanel.style.width = "300px";
+  settingsPanel.style.height = "200px";
+  settingsPanel.style.border = "1px solid #ccc";
+  settingsPanel.style.borderRadius = "10px";
+  settingsPanel.style.backgroundColor = "white";
+  settingsPanel.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+  settingsPanel.style.zIndex = "1000";
+  settingsPanel.style.display = "none";
+  settingsPanel.style.padding = "10px";
+
+  // Genre input field
+  const genreLabel = document.createElement("label");
+  genreLabel.innerText = "Genre:";
+  genreLabel.style.display = "block";
+  genreLabel.style.marginBottom = "5px";
+
+  const genreInput = document.createElement("input");
+  genreInput.type = "text";
+  genreInput.style.width = "90%";
+  genreInput.style.padding = "8px";
+  genreInput.style.borderRadius = "5px";
+  genreInput.style.border = "1px solid #ccc";
+
+  // Slider for AI commenting behavior
+  const sliderLabel = document.createElement("label");
+  sliderLabel.innerText = "AI Commenting Behavior:";
+  sliderLabel.style.display = "block";
+  sliderLabel.style.marginTop = "10px";
+  sliderLabel.style.marginBottom = "5px";
+
+  const slider = document.createElement("input");
+  slider.type = "range";
+  slider.min = "0";
+  slider.max = "100";
+  slider.value = "50";
+  slider.style.width = "100%";
+
+  // Save button
+  const saveButton = document.createElement("button");
+  saveButton.innerText = "Save";
+  saveButton.style.marginTop = "10px";
+  saveButton.style.padding = "8px 16px";
+  saveButton.style.backgroundColor = "#6200ea";
+  saveButton.style.color = "white";
+  saveButton.style.border = "none";
+  saveButton.style.borderRadius = "5px";
+  saveButton.style.cursor = "pointer";
+
+  // Append elements to the settings panel
+  settingsPanel.appendChild(genreLabel);
+  settingsPanel.appendChild(genreInput);
+  settingsPanel.appendChild(sliderLabel);
+  settingsPanel.appendChild(slider);
+  settingsPanel.appendChild(saveButton);
+
+  chatboxHeader.appendChild(settingsButton);
   chatboxHeader.appendChild(clearButton);
 
   inputContainer.appendChild(inputField);
@@ -103,18 +176,26 @@ let docinfo = "";
 
   document.body.appendChild(sidekickIcon);
   document.body.appendChild(chatbox);
+  document.body.appendChild(settingsPanel);
+
+  
 
   // Toggle chatbox visibility
   sidekickIcon.addEventListener("click", () => {
     chatbox.style.display = chatbox.style.display === "none" ? "block" : "none";
   });
+  // Toggle settings visibility
+  settingsButton.addEventListener("click", () => {
+    settingsPanel.style.display = settingsPanel.style.display === "none" ? "block" : "none";
+  });
 
   clearButton.addEventListener("mouseenter", () => {
     clearButton.style.backgroundColor = "rgba(132, 0, 255, 0.2)";
-});
-clearButton.addEventListener("mouseleave", () => {
-    clearButton.style.backgroundColor = "transparent";
-});
+  });
+  clearButton.addEventListener("mouseleave", () => {
+      clearButton.style.backgroundColor = "transparent";
+  });
+
 
   // Make the chatbox draggable
   let isDragging = false;
@@ -142,6 +223,25 @@ clearButton.addEventListener("mouseleave", () => {
     document.removeEventListener("mousemove", onMouseMove);
     document.removeEventListener("mouseup", onMouseUp);
   }
+
+  saveButton.addEventListener("click", () => {
+    const genre = genreInput.value.trim();
+    const commentingBehavior = slider.value;
+
+    chrome.storage.sync.set({ genre, commentingBehavior }, () => {
+        console.log("Settings saved");
+        settingsPanel.style.display = "none"; // Hide the settings panel after saving
+    });
+  });
+
+  chrome.storage.sync.get(["genre", "commentingBehavior"], (data) => {
+    if (data.genre) {
+        genreInput.value = data.genre;
+    }
+    if (data.commentingBehavior) {
+        slider.value = data.commentingBehavior;
+    }
+}); 
 
   // Handle the "Send" button click
   sendButton.addEventListener("click", async () => {
