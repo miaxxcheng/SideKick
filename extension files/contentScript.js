@@ -269,6 +269,7 @@ let docinfo = "";
     chrome.storage.sync.set({ genre, commentingBehavior }, () => {
         console.log("Settings saved");
         settingsPanel.style.display = "none"; // Hide the settings panel after saving
+        chatboxContent.style.display = "block"; // show chat
     });
   });
 
@@ -314,12 +315,12 @@ let docinfo = "";
           return;
         }
         const token = response.token;
+        const genre = genreInput.value.trim();
 
         // Read the document.
         const docinfo = await readGoogleDoc(documentId, token);
         console.log("docinfo", docinfo);
-
-        const prompt = `With this background information: ${docinfo}, answer the following question: ${message}`;
+        const prompt = `This is the story so far: ${docinfo}. It is a ${genre} novel. Use this context to answer the following: ${message}.`;
         console.log(prompt);
 
         // Call OpenAI API
