@@ -89,9 +89,95 @@ let docinfo = "";
   clearButton.style.padding = "4px 8px";
   clearButton.style.borderRadius = "4px";
   clearButton.style.position = "absolute"; 
-  clearButton.style.right = "10px"; 
+  clearButton.style.right = "45px";
   clearButton.style.top = "5px";
 
+  const settingsButton = document.createElement("button");
+  settingsButton.innerText = "⚙️"; 
+  settingsButton.style.backgroundColor = "transparent";
+  settingsButton.style.border = "none";
+  settingsButton.style.color = "white";
+  settingsButton.style.cursor = "pointer";
+  settingsButton.style.fontSize = "16px";
+  settingsButton.style.position = "absolute";
+  settingsButton.style.right = "10px"; 
+  settingsButton.style.top = "5px";
+
+
+  const settingsPanel = document.createElement("div");
+  settingsPanel.id = "settings-panel";
+  settingsPanel.style.position = "absolute";
+  settingsPanel.style.top = "35px";
+  settingsPanel.style.left = "0";
+  settingsPanel.style.width = "calc(100%-20px)";
+  settingsPanel.style.height = "calc(100% - 35px)";
+  settingsPanel.style.border = "1px solid #ccc";
+  settingsPanel.style.borderRadius = "10px";
+  settingsPanel.style.backgroundColor = "white";
+  settingsPanel.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+  settingsPanel.style.zIndex = "1000";
+  settingsPanel.style.display = "none";
+  settingsPanel.style.padding = "10px";
+  // settingsPanel.style.overflowY = "auto"; // Add scroll if content overflows
+
+  // Genre input field
+  const genreLabel = document.createElement("label");
+  genreLabel.innerText = "Genre:";
+  genreLabel.style.display = "block";
+  genreLabel.style.marginBottom = "5px";
+
+  const genreInput = document.createElement("input");
+  genreInput.type = "text";
+  genreInput.style.width = "90%";
+  genreInput.style.padding = "8px";
+  genreInput.style.borderRadius = "5px";
+  genreInput.style.border = "1px solid #ccc";
+
+  // Slider for AI commenting behavior
+  const sliderLabel = document.createElement("label");
+  sliderLabel.innerText = "AI Commenting Behavior:";
+  sliderLabel.style.display = "block";
+  sliderLabel.style.marginTop = "10px";
+  sliderLabel.style.marginBottom = "5px";
+
+  const slider = document.createElement("input");
+  slider.type = "range";
+  slider.min = "0";
+  slider.max = "100";
+  slider.value = "50";
+  slider.style.width = "90%";
+
+  // Save button for settings
+  const saveButton = document.createElement("button");
+  saveButton.innerText = "Save";
+  saveButton.style.marginTop = "10px";
+  saveButton.style.padding = "8px 16px";
+  saveButton.style.backgroundColor = "#6200ea";
+  saveButton.style.color = "white";
+  saveButton.style.border = "none";
+  saveButton.style.borderRadius = "5px";
+  saveButton.style.cursor = "pointer";
+  //Cancel button for settings
+  const cancelButton = document.createElement("button");
+  cancelButton.innerText = "Cancel";
+  cancelButton.style.marginTop = "10px";
+  cancelButton.style.padding = "8px 16px";
+  cancelButton.style.backgroundColor = "#ccc";
+  cancelButton.style.color = "black";
+  cancelButton.style.border = "none";
+  cancelButton.style.borderRadius = "5px";
+  cancelButton.style.cursor = "pointer";
+  cancelButton.style.marginLeft = "10px";
+
+  // Append elements to the settings panel
+  settingsPanel.appendChild(genreLabel);
+  settingsPanel.appendChild(genreInput);
+  settingsPanel.appendChild(sliderLabel);
+  settingsPanel.appendChild(slider);
+  settingsPanel.appendChild(saveButton);
+  settingsPanel.appendChild(cancelButton);
+
+  chatboxHeader.appendChild(settingsButton);
   chatboxHeader.appendChild(clearButton);
 
   inputContainer.appendChild(inputField);
@@ -100,21 +186,44 @@ let docinfo = "";
   chatbox.appendChild(chatboxHeader);
   chatbox.appendChild(chatboxContent);
   chatbox.appendChild(inputContainer);
+  chatbox.appendChild(settingsPanel);
 
   document.body.appendChild(sidekickIcon);
   document.body.appendChild(chatbox);
+ 
+
+  
 
   // Toggle chatbox visibility
   sidekickIcon.addEventListener("click", () => {
     chatbox.style.display = chatbox.style.display === "none" ? "block" : "none";
   });
+  // Toggle settings visibility
+  settingsButton.addEventListener("click", () => {
+    if (settingsPanel.style.display === "none") {
+      chatboxContent.style.display = "none"; // Hide the chatbox content
+      settingsPanel.style.display = "block"; // Show the settings panel
+
+      // Reset the settings panel position to ensure it is visible
+      settingsPanel.style.left = "0"; // Align to the left edge of the chatbox
+      settingsPanel.style.top = "35px"; // Position below the header
+      settingsPanel.style.width = "calc(100%-20px)"; // Take up the full width of the chatbox
+      settingsPanel.style.height = "calc(100% - 35px)"; // Adjust height to fit the content area
+    } else {
+      chatboxContent.style.display = "block"; // Show the chatbox content
+      settingsPanel.style.display = "none"; // Hide the settings panel
+    }
+  });
 
   clearButton.addEventListener("mouseenter", () => {
     clearButton.style.backgroundColor = "rgba(132, 0, 255, 0.2)";
-});
-clearButton.addEventListener("mouseleave", () => {
-    clearButton.style.backgroundColor = "transparent";
-});
+  });
+  clearButton.addEventListener("mouseleave", () => {
+      clearButton.style.backgroundColor = "transparent";
+  });
+
+
+
 
   // Make the chatbox draggable
   let isDragging = false;
@@ -126,14 +235,24 @@ clearButton.addEventListener("mouseleave", () => {
     offsetY = e.clientY - chatbox.getBoundingClientRect().top;
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", onMouseUp);
+  
+    // Sync the settings panel position on initial drag
+    const chatboxRect = chatbox.getBoundingClientRect();
+    settingsPanel.style.left = `${chatboxRect.left}px`;
+    settingsPanel.style.top = `${chatboxRect.top + 40}px`; // Adjust for the header height
   });
 
   function onMouseMove(e) {
     if (isDragging) {
+      const chatboxRect = chatbox.getBoundingClientRect();
       chatbox.style.left = `${e.clientX - offsetX}px`;
       chatbox.style.top = `${e.clientY - offsetY}px`;
       chatbox.style.bottom = "auto";
       chatbox.style.right = "auto";
+  
+      // Sync the settings panel position
+      settingsPanel.style.left = `${chatboxRect.left}px`;
+      settingsPanel.style.top = `${chatboxRect.top + 40}px`; 
     }
   }
 
@@ -142,6 +261,31 @@ clearButton.addEventListener("mouseleave", () => {
     document.removeEventListener("mousemove", onMouseMove);
     document.removeEventListener("mouseup", onMouseUp);
   }
+
+  saveButton.addEventListener("click", () => {
+    const genre = genreInput.value.trim();
+    const commentingBehavior = slider.value;
+
+    chrome.storage.sync.set({ genre, commentingBehavior }, () => {
+        console.log("Settings saved");
+        settingsPanel.style.display = "none"; // Hide the settings panel after saving
+        chatboxContent.style.display = "block"; // show chat
+    });
+  });
+
+  cancelButton.addEventListener("click", () => {
+    settingsPanel.style.display = "none";
+    // Optionally, reset any unsaved changes here
+  });
+
+  chrome.storage.sync.get(["genre", "commentingBehavior"], (data) => {
+    if (data.genre) {
+        genreInput.value = data.genre;
+    }
+    if (data.commentingBehavior) {
+        slider.value = data.commentingBehavior;
+    }
+}); 
 
   // Handle the "Send" button click
   sendButton.addEventListener("click", async () => {
@@ -171,12 +315,12 @@ clearButton.addEventListener("mouseleave", () => {
           return;
         }
         const token = response.token;
+        const genre = genreInput.value.trim();
 
         // Read the document.
         const docinfo = await readGoogleDoc(documentId, token);
         console.log("docinfo", docinfo);
-
-        const prompt = `With this background information: ${docinfo}, answer the following question: ${message}`;
+        const prompt = `This is the story so far: ${docinfo}. It is a ${genre} novel. Use this context to answer the following: ${message}.`;
         console.log(prompt);
 
         // Call OpenAI API
