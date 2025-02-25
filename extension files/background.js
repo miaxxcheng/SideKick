@@ -41,7 +41,8 @@ chrome.action.onClicked.addListener((tab) => {
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 300
+        max_tokens: 300,
+        stop: ["\n\n"]
       })
     });
     const data = await response.json();
