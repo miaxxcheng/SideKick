@@ -1,0 +1,122 @@
+[
+    {
+        "Category":"Theme",
+        "Subcategory":"Clarity",
+        "Node":null,
+        "Prompt":"Analyze how the central message of this story could be sharpened to reveal a specific truth about human nature."
+    },
+    {
+        "Category":"Theme",
+        "Subcategory":"Consistency",
+        "Node":null,
+        "Prompt":"Identify 2-3 places where character decisions or plot events could better reinforce the core theme."
+    },
+    {
+        "Category":"Theme",
+        "Subcategory":"Depth",
+        "Node":null,
+        "Prompt":"Suggest ways to add moral complexity to this theme by introducing contradictions or ethical dilemmas."
+    },
+    {
+        "Category":"Character",
+        "Subcategory":"Introduction",
+        "Node":null,
+        "Prompt":"Rewrite this character introduction to reveal personality through actions rather than direct description."
+    },
+    {
+        "Category":"Character",
+        "Subcategory":"New info",
+        "Node":null,
+        "Prompt":"Propose 1-2 surprising background details that could be gradually revealed to add depth to this character."
+    },
+    {
+        "Category":"Character",
+        "Subcategory":"Arcs",
+        "Node":null,
+        "Prompt":"Outline a specific internal weakness this character must overcome and how it connects to their external goal."
+    },
+    {
+        "Category":"Plot",
+        "Subcategory":"Structure",
+        "Node":"Act I",
+        "Prompt":"Craft a compelling inciting incident that forces the protagonist to leave their comfort zone by page 10."
+    },
+    {
+        "Category":"Plot",
+        "Subcategory":"Structure",
+        "Node":"Act II",
+        "Prompt":"Develop 2-3 escalating obstacles that test the protagonist's resolve while raising the stakes."
+    },
+    {
+        "Category":"Plot",
+        "Subcategory":"Structure",
+        "Node":"Act III",
+        "Prompt":"Design a climactic moment where the protagonist must make their most difficult choice that resolves their arc."
+    },
+    {
+        "Category":"Plot",
+        "Subcategory":"Setups and payoffs",
+        "Node":null,
+        "Prompt":"Identify 3 subtle elements to introduce early that will have significant payoff in the climax."
+    },
+    {
+        "Category":"Context",
+        "Subcategory":"Historical",
+        "Node":null,
+        "Prompt":"Suggest specific period-appropriate details that would create authentic limitations or opportunities for these characters."
+    },
+    {
+        "Category":"Context",
+        "Subcategory":"World building",
+        "Node":null,
+        "Prompt":"Develop 1-2 unique rules for this story world that naturally generate compelling conflicts."
+    },
+    {
+        "Category":"Individual scene",
+        "Subcategory":"Plot development",
+        "Node":"Conflict",
+        "Prompt":"Sharpen this scene by clarifying the opposing goals that create immediate tension between these characters."
+    },
+    {
+        "Category":"Individual scene",
+        "Subcategory":"Plot development",
+        "Node":"Planning",
+        "Prompt":"Restructure this scene to simultaneously advance the plot and reveal key character traits."
+    },
+    {
+        "Category":"Individual scene",
+        "Subcategory":"Characters",
+        "Node":"Learning New Information",
+        "Prompt":"Create a moment where a character discovers something that changes their understanding of their situation."
+    },
+    {
+        "Category":"Individual scene",
+        "Subcategory":"Characters",
+        "Node":"Internal conflict",
+        "Prompt":"Articulate the specific internal struggle affecting this character's decision-making in this scene."
+    },
+    {
+        "Category":"Dialogue",
+        "Subcategory":"Subtext",
+        "Node":null,
+        "Prompt":"Rewrite this dialogue exchange to convey unspoken feelings beneath the surface conversation."
+    },
+    {
+        "Category":"Dialogue",
+        "Subcategory":"Voice",
+        "Node":null,
+        "Prompt":"Revise these lines to better distinguish each character's unique speech patterns and vocabulary."
+    },
+    {
+        "Category":"Pacing",
+        "Subcategory":"Tension",
+        "Node":null,
+        "Prompt":"Identify where suspense could be heightened by strategically delaying a critical revelation."
+    },
+    {
+        "Category":"Pacing",
+        "Subcategory":"Reflection",
+        "Node":null,
+        "Prompt":"Suggest where to insert a brief reflective moment to let emotional impact resonate with readers."
+    }
+]

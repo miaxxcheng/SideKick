@@ -22,33 +22,168 @@ chrome.action.onClicked.addListener((tab) => {
         });
         });
     }
-
-  // Function to call OpenAI API
-  async function callOpenAI(prompt) {
-
-    const openaiApiKey = await getOpenAIKey();
-        if (!openaiApiKey) {
-            console.error("OpenAI API key not found. Please set it up in the extension settings.");
-            return;
-        }
-        
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${openaiApiKey}`
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 500,
-        temperature: 0.3,
-        top_p: 0.8
-      })
-    });
-    const data = await response.json();
-    return data.choices[0].message.content;
+  // Function to load prompts from a JSON file in your extension
+  async function loadPrompts() {
+    try {
+      const response = await fetch(chrome.runtime.getURL('data/writing_prompts.json'));
+      return await response.json();
+    } catch (error) {
+      console.error("Error loading prompts:", error);
+      return [];
+    }
   }
+
+  // First API call to determine the most relevant categories
+  async function getRelevantCategories(userPrompt) {
+    const openaiApiKey = await getOpenAIKey();
+    if (!openaiApiKey) {
+      console.error("OpenAI API key not found");
+      return [];
+    }
+    
+    const categorySelectionPrompt = `
+    You are a writing assistant helping to identify the most relevant aspects of writing that need attention.
+    Given the user's question about their writing, identify the THREE most relevant categories from this list:
+    
+    - Theme (Clarity, Consistency, Depth)
+    - Character (Introduction, New info, Arcs)
+    - Plot (Structure [Act I, Act II, Act III], Setups and payoffs)
+    - Context (Historical, World building)
+    - Individual scene (Plot development [Conflict, Planning], Characters [Learning New Information, Internal conflict])
+    - Dialogue (Subtext, Voice)
+    - Pacing (Tension, Reflection)
+    
+    The user's question is: "${userPrompt}"
+    
+    Look through the user's question and return the paths that the user is focusing on most. There can be less than three if one is the most relevant.
+    `;
+    
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${openaiApiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: categorySelectionPrompt }],
+          max_tokens: 500,
+          temperature: 0.3
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!data.choices || data.choices.length === 0) {
+        throw new Error("Invalid response from OpenAI");
+      }
+      
+      // Parse the JSON response from ChatGPT
+      try {
+        return JSON.parse(data.choices[0].message.content);
+      } catch (parseError) {
+        console.error("Error parsing category selection:", parseError);
+        return [];
+      }
+    } catch (error) {
+      console.error("Error calling OpenAI for categories:", error);
+      return [];
+    }
+  }
+
+  // Function to find prompts based on the selected categories
+  async function findPrompts(categories) {
+    const allPrompts = await loadPrompts();
+    const selectedPrompts = [];
+    
+    for (const category of categories) {
+      const matchingPrompts = allPrompts.filter(prompt => 
+        prompt.Category === category.category && 
+        prompt.Subcategory === category.subcategory &&
+        (category.node === "" || prompt.Node === category.node)
+      );
+      
+      if (matchingPrompts.length > 0) {
+        selectedPrompts.push(matchingPrompts[0]);
+      }
+    }
+    
+    return selectedPrompts;
+  }
+
+  // Final function to call OpenAI with the enriched prompt
+  async function callOpenAI(userPrompt) {
+    try {
+      // Step 1: Get the most relevant categories
+      const relevantCategories = await getRelevantCategories(userPrompt);
+      
+      // Step 2: Find the prompts for those categories
+      const selectedPrompts = await findPrompts(relevantCategories);
+      
+      // Format the prompts
+      const formattedPrompts = selectedPrompts.map(prompt => {
+        const path = `${prompt.Category} > ${prompt.Subcategory}${prompt.Node ? ' > ' + prompt.Node : ''}`;
+        return `- ${path}: ${prompt.Prompt}`;
+      }).join('\n');
+      
+      // Create the final prompt with the selected prompts
+      const finalPrompt = `As a writing assistant, help the user with this question:
+      
+  ${userPrompt}
+
+  Please consider these specific aspects of writing when providing your response:
+  ${formattedPrompts}`;
+
+      // Call the OpenAI API with the enriched prompt
+      const openaiApiKey = await getOpenAIKey();
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${openaiApiKey}`
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "user", content: finalPrompt }],
+          max_tokens: 500,
+          temperature: 0.7
+        })
+      });
+      
+      const data = await response.json();
+      return data.choices[0].message.content;
+    } catch (error) {
+      console.error("Error in OpenAI call process:", error);
+      return "Sorry, there was an error processing your request.";
+    }
+  }
+  // Function to call OpenAI API
+  // async function callOpenAI(prompt) {
+
+  //   const openaiApiKey = await getOpenAIKey();
+  //       if (!openaiApiKey) {
+  //           console.error("OpenAI API key not found. Please set it up in the extension settings.");
+  //           return;
+  //       }
+        
+  //   const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       "Authorization": `Bearer ${openaiApiKey}`
+  //     },
+  //     body: JSON.stringify({
+  //       model: "gpt-3.5-turbo",
+  //       messages: [{ role: "user", content: prompt }],
+  //       max_tokens: 500,
+  //       temperature: 0.3,
+  //       top_p: 0.8
+  //     })
+  //   });
+  //   const data = await response.json();
+  //   return data.choices[0].message.content;
+  // }
   
   // Listen for messages from content script
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
