@@ -79,18 +79,19 @@ let docinfo = "";
   sendButton.innerText = "Send";
 
   const clearButton = document.createElement("button");
-  clearButton.innerText = "Clear Chat";
-  clearButton.style.backgroundColor = "transparent";
-  clearButton.style.borderWidth = "1px";
-  clearButton.style.borderColor = "white";
+  clearButton.innerText = "Clear Chat and History";
+  clearButton.style.border = "none";
   clearButton.style.color = "white";
+  clearButton.style.backgroundColor = "#6200ea";
   clearButton.style.cursor = "pointer";
   clearButton.style.fontSize = "12px";
-  clearButton.style.padding = "4px 8px";
-  clearButton.style.borderRadius = "4px";
   clearButton.style.position = "absolute"; 
-  clearButton.style.right = "45px";
-  clearButton.style.top = "5px";
+  clearButton.style.marginTop = "10px";
+  clearButton.style.width = "100%";
+  clearButton.style.position = "static";
+  clearButton.style.marginBottom = "20px";
+  clearButton.style.padding = "8px 16px";
+  clearButton.style.borderRadius = "5px";
 
   const settingsButton = document.createElement("button");
   settingsButton.innerText = "⚙️"; 
@@ -170,6 +171,7 @@ let docinfo = "";
   cancelButton.style.marginLeft = "10px";
 
   // Append elements to the settings panel
+  settingsPanel.appendChild(clearButton);
   settingsPanel.appendChild(genreLabel);
   settingsPanel.appendChild(genreInput);
   settingsPanel.appendChild(sliderLabel);
@@ -177,8 +179,8 @@ let docinfo = "";
   settingsPanel.appendChild(saveButton);
   settingsPanel.appendChild(cancelButton);
 
+
   chatboxHeader.appendChild(settingsButton);
-  chatboxHeader.appendChild(clearButton);
 
   inputContainer.appendChild(inputField);
   inputContainer.appendChild(sendButton);
@@ -219,7 +221,7 @@ let docinfo = "";
     clearButton.style.backgroundColor = "rgba(132, 0, 255, 0.2)";
   });
   clearButton.addEventListener("mouseleave", () => {
-      clearButton.style.backgroundColor = "transparent";
+      clearButton.style.backgroundColor = "#6200ea";
   });
 
 
@@ -415,7 +417,6 @@ let docinfo = "";
           clearConversations(documentId);
       }
   });
-  chatboxHeader.appendChild(clearButton);
 
   // Allow Enter key to send message
   inputField.addEventListener("keypress", (e) => {
