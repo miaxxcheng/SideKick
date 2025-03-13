@@ -31,7 +31,7 @@
           "*://*.microsoft.com/word/*",
           "https://docs.google.com/document/d/*"
         ],
-        "js": ["contentScript.js"]
+        "js": ["plagiarism_api.js", "grammar_api.js", "contentScript.js"]
       }
     ],
     "web_accessible_resources": [
