@@ -817,3 +817,95 @@ function injectCommentBox(commentText) {
 
 
 
+
+// ------------------------------
+// SUGGESTION ARROW CODE (New Version)
+// ------------------------------
+
+
+(function() {
+  // Create the arrow element
+  const arrow = document.createElement("span");
+  arrow.innerText = "→";  // Right-pointing arrow
+  arrow.style.position = "fixed";
+  arrow.style.left = "10px";  // 10px from the left edge
+  arrow.style.top = "50px";   // 50px from the top edge
+  arrow.style.fontSize = "100px";  // Adjust size as needed
+  arrow.style.color = "red";  // Color for visibility
+  arrow.style.zIndex = "10000";  // Ensure it appears above most elements
+
+  // Append the arrow to the document body
+  document.body.appendChild(arrow);
+  
+  console.log("Arrow added to the page");
+})();
+
+// Function to create and position the arrow based on a given Range
+function placeArrowAtRange(range) {
+  // Remove any existing arrow indicators
+  document.querySelectorAll('.suggestion-arrow').forEach(el => el.remove());
+
+  const rect = range.getBoundingClientRect();
+  const arrow = document.createElement('span');
+  arrow.textContent = '→'; // The arrow symbol
+  arrow.className = 'suggestion-arrow';
+  arrow.style.position = 'absolute';
+  arrow.style.left = '10px'; // Fixed position from the left side
+  arrow.style.top = (rect.top + window.scrollY) + 'px';
+  arrow.style.fontSize = '20px';
+  arrow.style.cursor = 'pointer';
+  arrow.style.zIndex = '10001';
+
+  // Optionally, remove the arrow when clicked
+  arrow.addEventListener('click', () => {
+    arrow.remove();
+  });
+
+  document.body.appendChild(arrow);
+  console.log("arrow added")
+}
+
+// Attach event listeners to suggestion items in the chat box edit panel.
+// Note: If suggestion items are added dynamically, consider using event delegation.
+document.querySelectorAll('.suggestion-item').forEach(suggestion => {
+  suggestion.addEventListener('click', () => {
+    // Determine the correct Range based on your suggestion.
+    // For demonstration, we'll use the current selection if available.
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      placeArrowAtRange(range);
+    } else {
+      console.error('No selection found. Implement a custom range lookup based on the suggestion.');
+    }
+  });
+});
+
+
+// ------------------------------
+// TESTING CODE: Force Arrow Display for Testing Purposes
+// ------------------------------
+// This code creates a dummy element and displays an arrow next to it.
+// Remove or comment out this section when you are done testing.
+function testArrowDisplay() {
+  // Create a temporary element for testing arrow placement
+  const testElement = document.createElement("div");
+  // Position the test element somewhere visible
+  testElement.style.position = "absolute";
+  testElement.style.top = "200px";
+  testElement.style.left = "200px";
+  testElement.style.width = "1px";
+  testElement.style.height = "1px";
+  document.body.appendChild(testElement);
+
+  const range = document.createRange();
+  range.selectNodeContents(testElement);
+  placeArrowAtRange(range);
+}
+
+window.testArrowDisplay = testArrowDisplay;
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Adjust the timeout as needed to ensure elements are rendered
+  setTimeout(testArrowDisplay, 3000);
+});
