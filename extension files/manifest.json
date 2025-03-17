@@ -36,7 +36,7 @@
     ],
     "web_accessible_resources": [
       {
-        "resources": ["icons/*", "scripts/*", "data/writing_prompts.csv"],
+        "resources": ["icons/*", "scripts/*"],
         "matches": ["<all_urls>"]
       }
     ],

@@ -5,6 +5,22 @@ let docinfo = "";
   // Check if the Sidekick icon already exists to prevent duplication
   if (document.getElementById("sidekick-icon")) return;
 
+  const styleTag = document.createElement("style");
+  styleTag.textContent = `
+    #sidekick-text { font-family: 'Georgia', sans-serif; }
+    #tab-text { font-family: 'Georgia', monospace; }
+
+    #sidekick-chatbox {
+      resize: both;
+      overflow: auto;
+      min-width: 300px;
+      min-height: 400px;
+      max-width: 600px;
+      max-height: 800px;
+    }
+  `;
+  document.head.appendChild(styleTag);
+
   // Create the Sidekick icon and chatbox (same as before)
   const sidekickIcon = document.createElement("div");
   sidekickIcon.id = "sidekick-icon";
@@ -41,19 +57,29 @@ let docinfo = "";
   chatbox.style.overflow = "hidden";
 
   const chatboxHeader = document.createElement("div");
+  chatboxHeader.id = "sidekick-text";
   chatboxHeader.style.backgroundColor = "#6200ea";
   chatboxHeader.style.color = "white";
   chatboxHeader.style.padding = "10px";
   chatboxHeader.style.borderTopLeftRadius = "10px";
   chatboxHeader.style.borderTopRightRadius = "10px";
   chatboxHeader.style.cursor = "move";
-  chatboxHeader.innerText = "Sidekick";
+  chatboxHeader.innerText = "SIDEKICK";
 
   const chatboxContent = document.createElement("div");
-  chatboxContent.style.padding = "10px";
-  chatboxContent.style.height = "calc(100% - 90px)";
+  chatboxContent.style.padding = "20px";
+  chatboxContent.style.height = "calc(100% - 140px)";
   chatboxContent.style.overflowY = "auto";
-  chatboxContent.innerText = "Hello! How can I help you today?";
+  chatboxContent.style.alignItems = "center"; 
+  chatboxContent.style.justifyContent = "center"; 
+
+  const firstMessage = document.createElement("div");
+  firstMessage.innerText = "Hello, I'm Sidekick! How can I help you today?";
+  firstMessage.style.textAlign = "center"; // Center this specific message
+  firstMessage.style.marginTop = "5px"; // Add space below the tabs for cleaner layout
+  firstMessage.style.padding = "10px 0"; // Add padding for better spacing
+
+
 
   // Input container and its elements
   const inputContainer = document.createElement("div");
@@ -185,12 +211,14 @@ let docinfo = "";
   chatbox.appendChild(chatboxContent);
   chatbox.appendChild(inputContainer);
   chatbox.appendChild(settingsPanel);
+  chatboxContent.appendChild(firstMessage);
 
   document.body.appendChild(sidekickIcon);
   document.body.appendChild(chatbox);
  
   // Create tab navigation bar
   const tabNav = document.createElement("div");
+  tabNav.id = "tab-text";
   tabNav.style.display = "flex";
   tabNav.style.justifyContent = "space-around";
   tabNav.style.backgroundColor = "#320093";
@@ -214,8 +242,8 @@ let docinfo = "";
   
 
   // Create tabs for "Ideate" (chat) and "Edit" (comments)
-  const chatTab = createTab("Ideate", true);
-  const commentsTab = createTab("Edit", false);
+  const chatTab = createTab("IDEATE", true);
+  const commentsTab = createTab("EDIT", false);
 
   // Default active tab styling on page load
   chatTab.style.backgroundColor = "#7a33ff"; 
@@ -260,27 +288,7 @@ let docinfo = "";
   tabNav.appendChild(commentsTab);
   chatbox.appendChild(chatboxContent);
   chatbox.appendChild(commentsPanel);
-  
 
-
-  // After importing or including grammar_api.js functions
-
-// // Add a button to the "Edit" tab to check grammar
-// function addGrammarCheckButton() {
-//   const grammarButton = document.createElement("button");
-//   grammarButton.innerText = "Check Grammar";
-//   grammarButton.style.padding = "8px 16px";
-//   grammarButton.style.backgroundColor = "#6200ea";
-//   grammarButton.style.color = "white";
-//   grammarButton.style.border = "none";
-//   grammarButton.style.borderRadius = "5px";
-//   grammarButton.style.margin = "10px";
-//   grammarButton.style.cursor = "pointer";
-  
-//   commentsPanel.insertBefore(grammarButton, commentsPanel.firstChild);
-  
-//   grammarButton.addEventListener("click", runGrammarCheck);
-// }
 
 commentsTab.addEventListener("click", async () => {
   chatboxContent.style.display = "none";
@@ -817,95 +825,3 @@ function injectCommentBox(commentText) {
 
 
 
-
-// ------------------------------
-// SUGGESTION ARROW CODE (New Version)
-// ------------------------------
-
-
-(function() {
-  // Create the arrow element
-  const arrow = document.createElement("span");
-  arrow.innerText = "→";  // Right-pointing arrow
-  arrow.style.position = "fixed";
-  arrow.style.left = "10px";  // 10px from the left edge
-  arrow.style.top = "50px";   // 50px from the top edge
-  arrow.style.fontSize = "100px";  // Adjust size as needed
-  arrow.style.color = "red";  // Color for visibility
-  arrow.style.zIndex = "10000";  // Ensure it appears above most elements
-
-  // Append the arrow to the document body
-  document.body.appendChild(arrow);
-  
-  console.log("Arrow added to the page");
-})();
-
-// Function to create and position the arrow based on a given Range
-function placeArrowAtRange(range) {
-  // Remove any existing arrow indicators
-  document.querySelectorAll('.suggestion-arrow').forEach(el => el.remove());
-
-  const rect = range.getBoundingClientRect();
-  const arrow = document.createElement('span');
-  arrow.textContent = '→'; // The arrow symbol
-  arrow.className = 'suggestion-arrow';
-  arrow.style.position = 'absolute';
-  arrow.style.left = '10px'; // Fixed position from the left side
-  arrow.style.top = (rect.top + window.scrollY) + 'px';
-  arrow.style.fontSize = '20px';
-  arrow.style.cursor = 'pointer';
-  arrow.style.zIndex = '10001';
-
-  // Optionally, remove the arrow when clicked
-  arrow.addEventListener('click', () => {
-    arrow.remove();
-  });
-
-  document.body.appendChild(arrow);
-  console.log("arrow added")
-}
-
-// Attach event listeners to suggestion items in the chat box edit panel.
-// Note: If suggestion items are added dynamically, consider using event delegation.
-document.querySelectorAll('.suggestion-item').forEach(suggestion => {
-  suggestion.addEventListener('click', () => {
-    // Determine the correct Range based on your suggestion.
-    // For demonstration, we'll use the current selection if available.
-    const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      placeArrowAtRange(range);
-    } else {
-      console.error('No selection found. Implement a custom range lookup based on the suggestion.');
-    }
-  });
-});
-
-
-// ------------------------------
-// TESTING CODE: Force Arrow Display for Testing Purposes
-// ------------------------------
-// This code creates a dummy element and displays an arrow next to it.
-// Remove or comment out this section when you are done testing.
-function testArrowDisplay() {
-  // Create a temporary element for testing arrow placement
-  const testElement = document.createElement("div");
-  // Position the test element somewhere visible
-  testElement.style.position = "absolute";
-  testElement.style.top = "200px";
-  testElement.style.left = "200px";
-  testElement.style.width = "1px";
-  testElement.style.height = "1px";
-  document.body.appendChild(testElement);
-
-  const range = document.createRange();
-  range.selectNodeContents(testElement);
-  placeArrowAtRange(range);
-}
-
-window.testArrowDisplay = testArrowDisplay;
-
-document.addEventListener("DOMContentLoaded", () => {
-  // Adjust the timeout as needed to ensure elements are rendered
-  setTimeout(testArrowDisplay, 3000);
-});
