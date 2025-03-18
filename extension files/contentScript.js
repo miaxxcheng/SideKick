@@ -251,13 +251,23 @@ let docinfo = "";
 
   // Tab Switching Logic
   chatTab.addEventListener("click", () => {
-      chatboxContent.style.display = "block";
-      commentsPanel.style.display = "none";
-      chatTab.style.backgroundColor = "#7a33ff";
-      chatTab.style.borderBottom = "none";
-      commentsTab.style.backgroundColor = "#320093";
-      // Show the input container when in Ideate (chat) tab
-      inputContainer.style.display = "flex";
+    chatboxContent.style.display = "block";
+    commentsPanel.style.display = "none";
+    chatTab.style.backgroundColor = "#7a33ff";
+    chatTab.style.borderBottom = "none";
+    commentsTab.style.backgroundColor = "#320093";
+    // Show the input container when in Ideate (chat) tab
+    inputContainer.style.display = "flex";
+  
+    // Clear any active suggestion highlight if one exists.
+    if (currentSuggestion) {
+      chrome.runtime.sendMessage({ action: "getAuthToken" }, async (response) => {
+        if (!response.error) {
+          await clearSuggestionHighlight(currentSuggestion, response.token);
+          currentSuggestion = null;
+        }
+      });
+    }
   });
 
   commentsTab.addEventListener("click", () => {
@@ -305,6 +315,7 @@ commentsTab.addEventListener("click", async () => {
   // await performPlagiarismCheck();
 });
 
+
 // Function to run the grammar check on the current document text
 async function runGrammarCheck() {
   const documentId = extractDocumentId(window.location.href);
@@ -336,9 +347,22 @@ async function runGrammarCheck() {
       }
       
       // Add each suggestion as a comment
+      // suggestions.forEach(suggestion => {
+      //   const commentText = `Grammar issue at "${text.substr(suggestion.offset, suggestion.length)}": ${suggestion.message}. Suggested replacement: "${suggestion.replacement}"`;
+      //   injectCommentBox(commentText, suggestion);
+      // });
       suggestions.forEach(suggestion => {
+        // Extract the snippet from the document text
+        const snippet = text.substr(suggestion.offset, suggestion.length);
+        // Find the best occurrence in the full document text
+        const bestIndex = findClosestOccurrence(text, snippet, suggestion.offset);
+        if (bestIndex !== -1) {
+          console.log("Adjusted offset from", suggestion.offset, "to", bestIndex);
+          suggestion.offset = bestIndex;
+        }
+        
         const commentText = `Grammar issue at "${text.substr(suggestion.offset, suggestion.length)}": ${suggestion.message}. Suggested replacement: "${suggestion.replacement}"`;
-        injectCommentBox(commentText);
+        injectCommentBox(commentText, suggestion);
       });
       
     } catch (error) {
@@ -347,6 +371,143 @@ async function runGrammarCheck() {
     }
   });
 }
+
+// Global variable to track the currently highlighted suggestion.
+let currentSuggestion = null;
+
+async function onSuggestionClick(suggestion) {
+  chrome.runtime.sendMessage({ action: "getAuthToken" }, async (response) => {
+    if (response.error) {
+      console.error("Error getting auth token:", response.error);
+      return;
+    }
+    const token = response.token;
+    
+    // Clear previous highlight if any
+    if (currentSuggestion) {
+      await clearSuggestionHighlight(currentSuggestion, token);
+    }
+    
+    // Apply new highlight
+    await applySuggestionHighlight(suggestion, token);
+    currentSuggestion = suggestion;
+    
+    // Scroll to the newly highlighted text
+    scrollToHighlightedText();
+  });
+}
+
+/**
+ * Finds the closest occurrence of `snippet` in `docText` near `baseOffset`.
+ * Returns the index of the best match, or -1 if not found.
+ */
+function findClosestOccurrence(docText, snippet, baseOffset) {
+  let bestIndex = -1;
+  let bestDistance = Infinity;
+  let currentIndex = docText.indexOf(snippet);
+  while (currentIndex !== -1) {
+    const distance = Math.abs(currentIndex - baseOffset);
+    console.log("Found occurrence at", currentIndex, "with distance", distance);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestIndex = currentIndex;
+    }
+    currentIndex = docText.indexOf(snippet, currentIndex + 1);
+  }
+  console.log("Best index is", bestIndex, "with best distance", bestDistance);
+  return bestIndex;
+}
+
+async function applySuggestionHighlight(suggestion, token) {
+  const documentId = extractDocumentId(window.location.href);
+  if (!documentId) {
+    console.error("Document ID not found");
+    return;
+  }
+  // Use the original suggestion.offset and suggestion.length without any changes.
+  const requests = [{
+    updateTextStyle: {
+      range: {
+        startIndex: suggestion.offset + 1,
+        endIndex: suggestion.offset + suggestion.length + 1
+      },
+      textStyle: {
+        backgroundColor: { 
+          color: { rgbColor: { red: 0.831, green: 0.694, blue: 1 } } // blue highlight
+        }
+      },
+      fields: "backgroundColor"
+    }
+  }];
+  const url = `https://docs.googleapis.com/v1/documents/${documentId}:batchUpdate`;
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({ requests })
+    });
+    const data = await response.json();
+    console.log("Highlight applied:", data);
+  } catch (error) {
+    console.error("Error applying highlight:", error);
+  }
+}
+
+async function clearSuggestionHighlight(suggestion, token) {
+  const documentId = extractDocumentId(window.location.href);
+  if (!documentId) {
+    console.error("Document ID not found");
+    return;
+  }
+  const requests = [{
+    updateTextStyle: {
+      range: {
+        startIndex: suggestion.offset + 1,
+        endIndex: suggestion.offset + suggestion.length + 1
+      },
+      textStyle: {
+        backgroundColor: null
+      },
+      fields: "backgroundColor"
+    }
+  }];
+  const url = `https://docs.googleapis.com/v1/documents/${documentId}:batchUpdate`;
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({ requests })
+    });
+    const data = await response.json();
+    console.log("Highlight cleared:", data);
+  } catch (error) {
+    console.error("Error clearing highlight:", error);
+  }
+}
+
+function scrollToHighlightedText() {
+  // Give the Docs API a bit more time to render changes
+  setTimeout(() => {
+    // Option 1: Try finding the highlighted element by inline style.
+    let highlighted = document.querySelector('[style*="background-color: rgb(212, 177, 255)"]');
+    if (!highlighted) {
+      // Option 2: Fallback – scroll the main editor container.
+      highlighted = document.querySelector('.kix-appview-editor');
+    }
+    if (highlighted && typeof highlighted.scrollIntoView === "function") {
+      highlighted.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+      console.warn("Could not locate element to scroll into view.");
+    }
+  }, 1200); // Adjust delay as needed (try 1200ms or 1500ms if necessary)
+}
+
 
   // // Make sure to call this function after creating your tabs
   // addGrammarCheckButton();
@@ -457,7 +618,7 @@ async function runGrammarCheck() {
 
 
 // Create a function to inject the comment box into the comments tab
-function injectCommentBox(commentText) {
+function injectCommentBox(commentText, suggestion) {
   const commentBox = document.createElement('div');
   commentBox.style.position = 'relative';
   commentBox.style.width = '90%'; // Narrower width to prevent horizontal scroll
@@ -466,18 +627,23 @@ function injectCommentBox(commentText) {
   commentBox.style.padding = '10px';
   commentBox.style.borderRadius = '5px';
   commentBox.style.marginBottom = '10px';
-  commentBox.style.wordWrap = 'break-word'; // Ensure text doesn't overflow
-  commentBox.style.display = 'inline-block'; // Shrinks to text size
+  commentBox.style.wordWrap = 'break-word';
+  commentBox.style.display = 'inline-block';
 
-  // Create a div to display the comment
   const commentTextElement = document.createElement('div');
   commentTextElement.style.fontSize = '14px';
   commentTextElement.innerText = commentText;
-
-  // Add the comment to the comment box
   commentBox.appendChild(commentTextElement);
 
-  // Create a small 'X' delete button
+  // If a suggestion object is passed, make the box clickable.
+  if (suggestion) {
+    commentBox.style.cursor = "pointer";
+    commentBox.addEventListener('click', () => {
+      onSuggestionClick(suggestion);
+    });
+  }
+
+  // Create a small 'X' delete button.
   const deleteButton = document.createElement('button');
   deleteButton.innerText = '✖';
   deleteButton.style.position = 'absolute';
@@ -485,22 +651,33 @@ function injectCommentBox(commentText) {
   deleteButton.style.right = '5px';
   deleteButton.style.backgroundColor = 'transparent';
   deleteButton.style.border = 'none';
-  deleteButton.style.color = '#ff4c4c'; // Red for visibility
+  deleteButton.style.color = '#ff4c4c';
   deleteButton.style.cursor = 'pointer';
-  deleteButton.style.fontSize = '16px'; // Slightly larger 'X'
+  deleteButton.style.fontSize = '16px';
 
-  deleteButton.addEventListener('click', () => {
-      commentBox.remove(); // Remove the comment box when deleted
+  // On click, remove the comment box (and optionally clear the highlight).
+  deleteButton.addEventListener('click', (e) => {
+    e.stopPropagation(); // Don’t trigger the box click
+    if (suggestion && currentSuggestion &&
+        suggestion.offset === currentSuggestion.offset &&
+        suggestion.length === currentSuggestion.length) {
+      chrome.runtime.sendMessage({ action: "getAuthToken" }, async (response) => {
+        if (!response.error) {
+          await clearSuggestionHighlight(suggestion, response.token);
+          currentSuggestion = null;
+        }
+      });
+    }
+    commentBox.remove();
   });
-
-  // Add delete button to the comment box
   commentBox.appendChild(deleteButton);
 
-  // Append the comment box to the comments tab panel (assuming commentsPanel is the panel)
-  const commentsPanel = document.getElementById('comments-panel'); // The container for comments
+  const commentsPanel = document.getElementById('comments-panel');
   if (commentsPanel) {
-      commentsPanel.appendChild(commentBox);
+    commentsPanel.appendChild(commentBox);
   }
+
+  return commentBox;
 }
 
 
@@ -728,20 +905,40 @@ function injectCommentBox(commentText) {
     }
   }
 
+  // function extractText(doc) {
+  //   let extractedText = [];
+  //   if (doc.body && doc.body.content) {
+  //     doc.body.content.forEach(element => {
+  //       if (element.paragraph && element.paragraph.elements) {
+  //         element.paragraph.elements.forEach(el => {
+  //           if (el.textRun && el.textRun.content) {
+  //             extractedText.push(el.textRun.content.trim());
+  //           }
+  //         });
+  //       }
+  //     });
+  //   }
+  //   return { text: extractedText.join("\n") };
+  // }
   function extractText(doc) {
-    let extractedText = [];
+    let text = "";
     if (doc.body && doc.body.content) {
       doc.body.content.forEach(element => {
         if (element.paragraph && element.paragraph.elements) {
           element.paragraph.elements.forEach(el => {
-            if (el.textRun && el.textRun.content) {
-              extractedText.push(el.textRun.content.trim());
+            if (el.textRun && typeof el.textRun.content === "string") {
+              text += el.textRun.content;
             }
           });
+          // Ensure each paragraph ends with a newline.
+          if (!text.endsWith("\n")) {
+            text += "\n";
+          }
         }
       });
     }
-    return { text: extractedText.join("\n") };
+    console.log("Extracted text:", text);
+    return { text: text };
   }
 })();
 
@@ -813,15 +1010,8 @@ function injectCommentBox(commentText) {
   }
 
   
-
-  
-
-  
 }
 
-
-
 )();
-
 
 
